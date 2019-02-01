@@ -8,9 +8,9 @@ def decode(im) :
   decodedObjects = pyzbar.decode(im)
  
   # Print results
-  for obj in decodedObjects:
-    print('Type : ', obj.type)
-    print('Data : ', obj.data,'\n')
+  #for obj in decodedObjects:
+    #print('Type : ', obj.type)
+    #print('Data : ', obj.data,'\n')
      
   return decodedObjects
  
@@ -55,7 +55,7 @@ def remove(im, decodedObjects):
      
     # Number of points in the convex hull
     n = len(hull)
-    print('convex hull',n,(hull[0],hull[3]))
+    #print('convex hull',n,(hull[0],hull[3]))
 #    cv2.polylines(im,hull,True,(0,255,255),3)
 
     cv2.rectangle(im,hull[0],hull[2],(255,255,255),cv2.FILLED)
