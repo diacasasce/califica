@@ -5,5 +5,5 @@ from time import sleep
 scanned=False
 while not scanned:
     scanned=pr.scanAll()
-    pr.calificaFolder('origen/','origen/procesados/')
+pr.calificaFolder('origen/','origen/procesados/')
 
