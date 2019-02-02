@@ -6,12 +6,7 @@ from time import sleep
 import datetime
 import pyautogui
 import psutil
-#definiciones
-#file_name='test1.jpg'
-##parametros de umbralizacion
-#
-#print(res)
-
+import threading
 
 def send(idp,ide,res,retry=0):
 	try:
@@ -37,21 +32,28 @@ def send(idp,ide,res,retry=0):
 			print("error de conexion")
 
 def calificaFolder(folder,baseDir='./'):
+	sleep(3)
 	print(datetime.datetime.now())
 	checkFolder(baseDir)
 	lst=listFolder(folder,".jpg")
-	th=(100,170,210)
+	while len(lst)<1:
+		lst=listFolder(folder,".jpg")	
+	#th=(100,170,210)
+	th=(100,50,230)
+	sleep(2)
 	while len(lst)>0:
+		sleep(0)
 		#print(lst[0])
 		file_name=folder+lst[0]
 		idp,ide,res=Califica(file_name,th,baseDir)
-		print(idp,ide,res)
+		send(idp,ide,res)
 		#print(idp,ide,res)
 		#if ide!='':
 			#print(lst[0])
 		lst=listFolder(folder,".jpg")
 		#print(lst)
 	print(datetime.datetime.now())
+	return True
 #calificaFolder('origen/','origen/procesados/')
 #proceso de scan
 
@@ -69,7 +71,7 @@ def scanAll():
 	while focused.title!="Epson Scan 2":
 		window = pyautogui.pygetwindow.getWindowsWithTitle("epson Scan 2")
 		focused= pyautogui.pygetwindow.getFocusedWindow()
-		print(focused.title)
+		#print(focused.title)
 		if window:
 			window[0].focus()
 	opn=0
@@ -79,7 +81,7 @@ def scanAll():
 		window = pyautogui.pygetwindow.getWindowsWithTitle("En proceso")
 		window1 = pyautogui.pygetwindow.getWindowsWithTitle("Modo de alimentación automática")
 		focused= pyautogui.pygetwindow.getFocusedWindow()
-		print('wait proceso ->',focused.title,opn)
+		#print('wait proceso ->',focused.title,opn)
 		if window:
 			window[0].focus()
 			opn=len(window)
@@ -90,7 +92,7 @@ def scanAll():
 	while focused.title!="En proceso":
 		window = pyautogui.pygetwindow.getWindowsWithTitle("En proceso")
 		focused= pyautogui.pygetwindow.getFocusedWindow()
-		print('En proceso -->',focused.title)
+		#print('En proceso -->',focused.title)
 		if window:
 			window[0].focus()
 	## se mantiene en proceso
@@ -100,7 +102,7 @@ def scanAll():
 		try:
 			window = pyautogui.pygetwindow.getWindowsWithTitle("En proceso")
 			focused= pyautogui.pygetwindow.getFocusedWindow()
-			print('stay proceso ->',focused.title,opn)
+			#print('stay proceso ->',focused.title,opn)
 			opn=len(window)
 			if window:
 				
@@ -108,12 +110,12 @@ def scanAll():
 		except:
 			print('except procesos')
 	print('wait for MODO')
-	sleep(5)
+	sleep(1)
 	print('finish')
 	while focused.title!="Modo de alimentación automática":
 		window = pyautogui.pygetwindow.getWindowsWithTitle("Modo de alimentación automática")
 		focused= pyautogui.pygetwindow.getFocusedWindow()
-		print('automatico -->',focused.title)
+		#print('automatico -->',focused.title)
 		if window:
 			window[0].focus()
 	opn=2
@@ -123,7 +125,7 @@ def scanAll():
 		focused= pyautogui.pygetwindow.getFocusedWindow()
 		if window:
 			window[0].focus()
-		print('wait automatico ->',focused.title,opn)
+		#print('wait automatico ->',focused.title,opn)
 		opn=len(window)
 
 	sleep(2)
@@ -133,15 +135,16 @@ def scanAll():
 	while focused.title!="Epson Scan 2":
 		window = pyautogui.pygetwindow.getWindowsWithTitle("epson Scan 2")
 		focused= pyautogui.pygetwindow.getFocusedWindow()
-		print(focused.title)
+		#print(focused.title)
 		if window:
 			window[0].focus()
 			pyautogui.hotkey("alt","f4")
-	return 'done'
+	return True
 	
 
 #print(scanAll())
-#calificaFolder('origen/test/','origen/procesados/')
+#calificaFolder('origen/','origen/procesados/')
 #th=(100,170,210)
-#idp,ide,res=Califica('origen/pic0008.jpg',th,'origen/procesados/')
+#idp,ide,res=Califica('origen/pic0001.jpg',th,'origen/procesados/')
 #print((idp,ide,res))
+

@@ -20,15 +20,14 @@ def filter(contours,area,ratio,solid,ima):
             Csolid = float(Carea)/hull_area
         else:
             Csolid=0
-        if Carea>area:# and Carea<1.5*area:
+        if Carea>area and Carea<20*area:
             if abs(Cratio-ratio)<(0.4*ratio):
                 if(abs(Csolid-solid)<(0.5*solid)):                
                     result.append(cnt)   
     refs=(ima.copy()*0)
-    #cv.drawContours(refs, result, cv.FILLED, (255,255,255))
-    #show('ima',refs)
-    return result
-
+    cv.drawContours(refs, result, cv.FILLED, (255,255,255))
+#    show('ima',refs)
+    return (result,refs)
 
 def get_contour(img,th):
     #show('ori',img)
@@ -36,33 +35,43 @@ def get_contour(img,th):
     res = cv.resize(img,None,fx=0.5, fy=0.5, interpolation = cv.INTER_CUBIC)    
     #show('ori r',res)
     res=img
-    gray = cv.cvtColor(res,cv.COLOR_BGR2GRAY)        
+    frame=img.copy()
+    gray = cv.cvtColor(res,cv.COLOR_BGR2GRAY)
     hsv = cv.cvtColor(res, cv.COLOR_BGR2HSV)
-    h,s,v = cv.split(hsv)
-    #print(img.shape,res.shape)
-    s1=(255-s)
-    _,s2= cv.threshold(s1,MED,1,cv.THRESH_BINARY)
-    g1=gray*s2
-    _,g2= cv.threshold(g1,HIGH,1,cv.THRESH_BINARY)
-    g3=255*(g2+(1-s2))
-    g4 = cv.blur(g3,(5,5))
-    _,g5= cv.threshold(g4,LOW,1,cv.THRESH_BINARY)
-    g6=255*(1-g5)
-    dist=g6
-    dist_8u = dist.astype('uint8')
+    black = np.array([0,0,0])
+    vr=''
+    prep=frame.copy()
+    Ugray =np.array([255,255,200])
+    mask = cv.inRange(hsv, black, Ugray)
+    blur = cv.blur(mask,(5,5))
+    kernel = np.ones((3,3),np.uint8)
+    erosion = cv.erode(blur,kernel,iterations = 9)
+    eroad= cv.add(erosion,erosion)
+    eroadd = cv.erode(eroad,kernel,iterations = 2)
+    eroad=cv.addWeighted(erosion,1,eroadd,0.3,0)
+    dilation = cv.dilate(eroad,kernel,iterations = 3)
+    erotion = cv.erode(dilation,kernel,iterations = 1)
 
+    erotion= cv.add(erotion,erotion)
+    blur = cv.bilateralFilter(erotion,25,200,200)
+    blur= cv.add(blur,blur)
+    blur= cv.add(blur,blur)
+    blur= cv.add(blur,blur)
+#    show('bmaskd',blur)
+#    show('mask2',mask2)
     # Find total markers
-    _, contours, _ = cv.findContours(dist_8u, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    
+    #_, contours, _ = cv.findContours(dist_8u, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    _, contours, _ = cv.findContours(erotion, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
     # Create the marker image for the watershed algorithm
-    markers = np.zeros(dist.shape, dtype=np.int32) 
-    cntr=filter(contours,100,1,1,res)
+    markers = np.zeros(erosion.shape, dtype=np.int32) 
+    cntr,imf=filter(contours,50,1,1,res)
     # Draw the foreground markers
     #print(len(contours))
     ##### aqui ya estan las respuestas segmentadas, ahora debo trabajarlas una por una
     #resg6 = cv.resize(g6,None,fx=0.5, fy=0.5, interpolation = cv.INTER_CUBIC)
     cv.drawContours(res, cntr, cv.FILLED, (0,0,250))
-    return (cntr,markers)
+    return (cntr,markers,imf)
 
 def get_id(ctr,mar,img):
     (contours,markers)=ctr
@@ -88,7 +97,8 @@ def get_id(ctr,mar,img):
                 #print(cy,cy-U,posY,posX)
                 #cv.circle(img,(cx,cy), 10, (0,0,255), -1)
                 #show('ctr',img[117:427,140:530])
-                ret[posX]=int(posY)
+                if posX<len(ret):
+                    ret[posX]=int(posY)
     ide=''
     for i in range(0,len(ret)):
         ide=ide+str(ret[i])
@@ -135,17 +145,23 @@ def get_resp(pre,secs,sz,ctr,mar,resu,img):
                 if(limits[0]<=cy<=limits[1]):
                     posY=round((abs(cy-limits[0])/sz)-0.5)
                     posX=round((abs(cx-L)/D)-0.5)
-                    resu[posX+(35*i)]=letras[int(posY)]
+                    if posX+(35*i)<len(resu) and int(posY)<len(letras) :
+                        if resu[posX+(35*i)]=='0':
+                            resu[posX+(35*i)]=letras[int(posY)]
+                        else:
+                            resu[posX+(35*i)]='X'
+
     #                cv.circle(img,(cx,cy), 10, (0,0,255), -1)
     #show('ctr',img)
     return resu
 
 # show 
-def show(title,image):
-    img=cv.resize(image,None,fx=0.5, fy=0.5, interpolation = cv.INTER_CUBIC)
+def show(title,image,last=True):
+    img=cv.resize(image,None,fx=0.4, fy=0.4, interpolation = cv.INTER_CUBIC)
     cv.imshow(title,img) 
-    cv.waitKey(0)
-    cv.destroyAllWindows()
+    if last:
+        cv.waitKey(0)
+        cv.destroyAllWindows()
 # string de numeros a respuestas por fila
 def Dsplit(str): 
     res=[]
@@ -176,11 +192,21 @@ def Califica(file,th,baseDir):
     imrQ=CR.remove(im, decodedObjects)
     ##remove logo
     imr= imrQ[300:4200,0:1700]
+    
+#    blur = cv.bilateralFilter(imr,(5,5))
+#    blur = cv.blur(blur,(5,5))
+#    blur = cv.blur(blur,(5,5))
+ #   img12=cv.resize(imr,None,fx=0.5, fy=0.5, interpolation = cv.INTER_CUBIC)
+#    cv.imshow('noblur',img12) 
+#    img22=cv.resize(blur,None,fx=0.5, fy=0.5, interpolation = cv.INTER_CUBIC)
+#    cv.imshow('blur',img22) 
+#    cv.waitKey(0)
+#    cv.destroyAllWindows()
     #print(imr.shape)
     #show('removed',imr)
     
     #generar contornos
-    cont,mrk=get_contour(imr,th)
+    cont,mrk,imFilter=get_contour(imr,th)
     # obtiene documento de identidad  --- Id 
     #imfr= imr[117:427,140:530]
     #show('first',imfr)
@@ -201,7 +227,10 @@ def Califica(file,th,baseDir):
     folder=checkFolder(baseDir+Idprueba)
     nm=Id
     newName=folder+"/"+nm+".jpg"
+#    ctName=folder+"/ct-"+nm+".jpg"
+#    show('filtro',imFilter)
     cv.imwrite(newName,save)
+    #cv.imwrite(ctName,imFilter)
     if os.path.isfile(newName):
         #print(file)
         os.remove(file)

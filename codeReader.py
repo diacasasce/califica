@@ -57,8 +57,10 @@ def remove(im, decodedObjects):
     n = len(hull)
     #print('convex hull',n,(hull[0],hull[3]))
 #    cv2.polylines(im,hull,True,(0,255,255),3)
-
+  try:
     cv2.rectangle(im,hull[0],hull[2],(255,255,255),cv2.FILLED)
     cv2.rectangle(im,hull[0],hull[2],(255,255,255),5)
-  return im
+    return im
+  except:
+    return im
 
