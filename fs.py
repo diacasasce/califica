@@ -24,4 +24,3 @@ def listFolder(folder,ext=''):
         return f
     else:
         return []
-def readFile():
