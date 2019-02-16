@@ -7,8 +7,9 @@ import datetime
 import os
 
 
-def filter(contours,area,ratio,solid,ima):
+def filter(contours,areas,ratio,solid,ima):
     result=[]
+    area,Uarea=areas
     for i in range(len(contours)):
         cnt=contours[i]
         Carea = cv.contourArea(cnt)
@@ -20,13 +21,17 @@ def filter(contours,area,ratio,solid,ima):
             Csolid = float(Carea)/hull_area
         else:
             Csolid=0
-        if Carea>area and Carea<20*area:
+        #print(Carea)
+        if Carea>area and Carea<Uarea:
             if abs(Cratio-ratio)<(0.4*ratio):
                 if(abs(Csolid-solid)<(0.5*solid)):                
                     result.append(cnt)   
     refs=(ima.copy()*0)
     cv.drawContours(refs, result, cv.FILLED, (255,255,255))
-#    show('ima',refs)
+    #show('ima',refs,False)
+    #refs1=(ima.copy()*0)
+    #cv.drawContours(refs1, contours, cv.FILLED, (255,255,255))
+    #show('ima1',refs1)
     return (result,refs)
 
 def get_contour(img,th):
@@ -53,19 +58,19 @@ def get_contour(img,th):
     erotion = cv.erode(dilation,kernel,iterations = 1)
 
     erotion= cv.add(erotion,erotion)
-    blur = cv.bilateralFilter(erotion,25,200,200)
-    blur= cv.add(blur,blur)
-    blur= cv.add(blur,blur)
-    blur= cv.add(blur,blur)
-#    show('bmaskd',blur)
-#    show('mask2',mask2)
+    erotion= cv.add(erotion,erotion)
+    erotion= cv.add(erotion,erotion)
+    blur = cv.bilateralFilter(erotion,16,200,200)
+    blur = cv.add(blur,blur)
+    #show('bmaskd',blur,False)
+    #show('mask2',erotion)
     # Find total markers
     #_, contours, _ = cv.findContours(dist_8u, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     _, contours, _ = cv.findContours(erotion, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
     # Create the marker image for the watershed algorithm
     markers = np.zeros(erosion.shape, dtype=np.int32) 
-    cntr,imf=filter(contours,50,1,1,res)
+    cntr,imf=filter(contours,(90,400),1,1,res)
     # Draw the foreground markers
     #print(len(contours))
     ##### aqui ya estan las respuestas segmentadas, ahora debo trabajarlas una por una
@@ -155,6 +160,25 @@ def get_resp(pre,secs,sz,ctr,mar,resu,img):
     #show('ctr',img)
     return resu
 
+# detector
+def qr_det(qr,fact=1):
+    hsv = cv.cvtColor(qr, cv.COLOR_BGR2HSV)
+    black = np.array([-1,0,0])
+    vr=''
+    Ugray =np.array([255,255,200])
+    res = cv.resize(hsv,None,fx=fact , fy=fact, interpolation = cv.INTER_CUBIC)
+    mask = cv.inRange(res, black, Ugray)
+    kernel = np.ones((6,6),np.uint8)
+    openn = cv.morphologyEx(mask, cv.MORPH_OPEN, kernel)
+    openn = cv.morphologyEx(openn, cv.MORPH_OPEN, kernel)
+    openn = 255-cv.morphologyEx(openn, cv.MORPH_OPEN, kernel)
+    #cl.show('mask',openn)
+    decode=CR.decode(openn)
+    if decode:
+        return decode    #cl.show('mask',openn)
+    else:
+        return False
+
 # show 
 def show(title,image,last=True):
     img=cv.resize(image,None,fx=0.4, fy=0.4, interpolation = cv.INTER_CUBIC)
@@ -171,6 +195,10 @@ def Dsplit(str):
 
 #califica(file_name,103)
 def Califica(file,th,baseDir):
+    OldName=file
+    newName=file
+    Idprueba,Id,response=(False,False,False)
+
     #carga image
     #print(file)
     im = cv.imread(file)
@@ -178,59 +206,60 @@ def Califica(file,th,baseDir):
     #print(im.shape)
     #show('original',im)
     QR= im[0:800,0:1700]
-#    show('QR',QR)
+    #show('QR',QR)
     #print(QR.shape)
     #decodeQR
-    decodedObjects = CR.decode(QR)
-    Idprueba,data,Max=str(decodedObjects[0].data).split('\'')[1].split(',')
-    pre=Dsplit(data)
-    #print(Idprueba)
-    #print(pre)
-    #print(Max)
-    #CR.display(QR,decodedObjects)
-    #removeQr
-    imrQ=CR.remove(im, decodedObjects)
-    ##remove logo
-    imr= imrQ[300:4200,0:1700]
-    
-#    blur = cv.bilateralFilter(imr,(5,5))
-#    blur = cv.blur(blur,(5,5))
-#    blur = cv.blur(blur,(5,5))
- #   img12=cv.resize(imr,None,fx=0.5, fy=0.5, interpolation = cv.INTER_CUBIC)
-#    cv.imshow('noblur',img12) 
-#    img22=cv.resize(blur,None,fx=0.5, fy=0.5, interpolation = cv.INTER_CUBIC)
-#    cv.imshow('blur',img22) 
-#    cv.waitKey(0)
-#    cv.destroyAllWindows()
-    #print(imr.shape)
-    #show('removed',imr)
-    
-    #generar contornos
-    cont,mrk,imFilter=get_contour(imr,th)
-    # obtiene documento de identidad  --- Id 
-    #imfr= imr[117:427,140:530]
-    #show('first',imfr)
-    Id=get_id((cont,mrk),(117,427,140,530),imr.copy())
-    #print(Id)
-    #contorno a respuest
-    resu=['0']*(int(Max))
-    first_line=530
-    mar=(140,1490,38.57)
-    
-    secs=get_section(first_line,pre,36,56)
-    #resu=get_response((cont,mrk),(160,up,bt),resu,(35*i),imr.copy())
-    resu=get_resp(pre,secs,36,(cont,mrk),mar,resu,imr.copy())
-    resp=[]
-    for i in range(0,len(resu)):
-        resp.append(str(resu[i]))
-    response=''.join(resp)
-    folder=checkFolder(baseDir+Idprueba)
-    nm=Id
-    newName=folder+"/"+nm+".jpg"
-#    ctName=folder+"/ct-"+nm+".jpg"
-#    show('filtro',imFilter)
-    cv.imwrite(newName,save)
-    #cv.imwrite(ctName,imFilter)
+    fact=3
+    decodedObjects=qr_det(QR,fact)
+    if decodedObjects:
+        Idprueba,data,Max=str(decodedObjects[0].data).split('\'')[1].split(',')
+        pre=Dsplit(data)
+        #print(Idprueba)
+        #print(pre)
+        #print(Max)
+        #CR.display(QR,decodedObjects)
+        #removeQr
+        imrQ=CR.remove(im, decodedObjects,fact)
+        ##remove logo
+        imr= imrQ[300:4200,0:1700]
+        
+        #generar contornos
+        cont,mrk,imFilter=get_contour(imr,th)
+        # obtiene documento de identidad  --- Id 
+        #imfr= imr[117:427,140:530]
+        #show('first',imfr)
+        Id=get_id((cont,mrk),(117,427,140,530),imr.copy())
+        #print(Id)
+        #contorno a respuest
+        resu=['0']*(int(Max))
+        first_line=530
+        mar=(140,1490,38.57)
+        
+        secs=get_section(first_line,pre,36,56)
+        #resu=get_response((cont,mrk),(160,up,bt),resu,(35*i),imr.copy())
+        resu=get_resp(pre,secs,36,(cont,mrk),mar,resu,imr.copy())
+        resp=[]
+        for i in range(0,len(resu)):
+            resp.append(str(resu[i]))
+        response=''.join(resp)
+        folder=checkFolder(baseDir+Idprueba)
+        nm=Id
+        newName=folder+"/"+nm+".jpg"
+        k=1
+        while os.path.isfile(newName)==True:
+            newName=folder+"/"+nm+'-'+str(k)+".jpg"
+            k+=1
+        cv.imwrite(newName,save)
+    #    ctName=folder+"/ct-"+nm+".jpg"
+    #    show('filtro',imFilter)
+    #    print(OldName)
+    #    print(newName)
+    else:
+        head,tail=os.path.split(OldName)
+        folder=checkFolder(baseDir+'sinQR')
+        newName=folder+"/"+tail
+        cv.imwrite(newName,save)
+        #cv.imwrite(ctName,imFilter)
     if os.path.isfile(newName):
         #print(file)
         os.remove(file)

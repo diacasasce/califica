@@ -2,7 +2,6 @@
 # Enero 17 de 2019
 
 import procesos as pr
-
 import tkinter as tk
 from tkinter import *
 from tkinter import messagebox
@@ -17,7 +16,7 @@ from time import sleep
 def popupmsg(msg):
     NORM_FONT = ("Helvetica", 10)
     popup = tk.Tk()
-    popup.iconbitmap("zigma.ico")
+    popup.iconbitmap("./img/zigma.ico")
     popup.wm_title("Finalizado")
     label = ttk.Label(popup, text=msg, font=NORM_FONT)
     label.pack(side="top", fill="x", pady=10)
@@ -48,9 +47,9 @@ class Application(tk.Frame):
         #self.quit = tk.Button(self, text="QUIT", fg="red", command=root.destroy)
         #self.quit.pack(side="bottom")
 
-        self.imgEnt = PhotoImage(file="btEntrarp.png")
-        self.imgSal = PhotoImage(file="btSalirp.png")
-        self.imgEsc = PhotoImage(file="btEscanearp.png")
+        self.imgEnt = PhotoImage(file="./img/btEntrarp.png")
+        self.imgSal = PhotoImage(file="./img/btSalirp.png")
+        self.imgEsc = PhotoImage(file="./img/btEscanearp.png")
 
         self.btEntrar = tk.Button(root,command=self.Entrar,text='Entrar',width=100)
         self.btEntrar.place(x=300,y=300)
@@ -126,7 +125,7 @@ class Application(tk.Frame):
         self.dialogo.iconbitmap("zigma.ico")
         self.dialogo.geometry("403x253+300+250")
         self.dialogo.resizable(0,0)
-        fondod=PhotoImage(file="Fondo250-400.png")
+        fondod=PhotoImage(file="./img/Fondo250-400.png")
         lblFondo=Label(self.dialogo,image=fondod).place(x=0,y=0) #fondo 
         self.dialogo.grab_set()
         self.dialogo.deiconify()
@@ -150,12 +149,12 @@ class Application(tk.Frame):
         self.txt2.pack()
         self.txt2.place(x=155,y=102) #x=izq-derecha  y=arriba,abajo
 
-        imgEnt2 = PhotoImage(file="entrar5.png")
+        imgEnt2 = PhotoImage(file="./img/entrar5.png")
         btEntra = Button(self.dialogo,command=lambda:self.Validar("dato"),text='Entrar')
         btEntra.place(x=70,y=150)
         btEntra.config(image=imgEnt2)
     
-        imgCan = PhotoImage(file="cancelar.png")
+        imgCan = PhotoImage(file="./img/cancelar.png")
         btCancela = Button(self.dialogo,command=self.dialogo.destroy,text='Entrar')
         btCancela.place(x=180,y=150)
         btCancela.config(image=imgCan)
@@ -180,7 +179,7 @@ class Application(tk.Frame):
         self.dialogo.iconbitmap("zigma.ico")
         self.dialogo.geometry("603x423+120+120")
         self.dialogo.resizable(0,0)
-        fondod=PhotoImage(file="Fondo420-600.png")
+        fondod=PhotoImage(file="./img/Fondo420-600.png")
         lblFondo=Label(self.dialogo,image=fondod).place(x=0,y=0) #fondo 
         self.dialogo.grab_set()
         self.dialogo.deiconify()
@@ -215,19 +214,19 @@ class Application(tk.Frame):
         self.codp.focus()
 
         
-        imgEnt3 = PhotoImage(file="btConsultar.png")
+        imgEnt3 = PhotoImage(file="./img/btConsultar.png")
         btEntra = Button(self.dialogo,command=lambda:self.Consultap("dato"),text='Consultar')
         btEntra.place(x=430,y=56)
         btEntra.config(image=imgEnt3)
         self.dialogo.bind('<Return>', (lambda e, btEntra=btEntra: btEntra.invoke())) # Boton por defecto
     
-        imgEsc = PhotoImage(file="btEscanear.png")
+        imgEsc = PhotoImage(file="./img/btEscanear.png")
         btEscanea = Button(self.dialogo,command=lambda:self.Escanea("codigodePrueba"),text='Escanea')
         btEscanea.place(x=180,y=350)
         btEscanea.config(image=imgEsc)        
         #self.wait_window(self.dialogo)
 
-        imgCan = PhotoImage(file="btRegresar.png")
+        imgCan = PhotoImage(file="./img/btRegresar.png")
         btCancela = Button(self.dialogo,command=self.dialogo.destroy,text='Cancela')
         btCancela.place(x=300,y=350)
         btCancela.config(image=imgCan)
@@ -311,7 +310,7 @@ root = tk.Tk()
 root.title('Calificación de examenes tipo Icfes')
 root.geometry('803x603+10+10')
 root.iconbitmap("zigma.ico")
-fondo=PhotoImage(file="fondo.png")
+fondo=PhotoImage(file="./img/fondo.png")
 lblFondo=Label(root,image=fondo).place(x=0,y=0) #fondo 
 
 app = Application(master=root)

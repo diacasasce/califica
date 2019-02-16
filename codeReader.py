@@ -13,15 +13,22 @@ def decode(im) :
     #print('Data : ', obj.data,'\n')
      
   return decodedObjects
- 
+
+def scale(data,fact=1):
+  resp=[]
+  for point in data:
+    x,y=(point.x,point.y)
+    x=int(x/fact)
+    y=int(y/fact)
+    resp.append((x,y))
+  return(resp)
  
 # Display barcode and QR code location  
-def display(im, decodedObjects):
- 
+def display(im, decodedObjects,fact=1):
   # Loop over all decoded objects
   for decodedObject in decodedObjects: 
-    points = decodedObject.polygon
- 
+    points = scale(decodedObject.polygon,fact)
+    
     # If the points do not form a quad, find convex hull
     if len(points) > 4 : 
       hull = cv2.convexHull(np.array([point for point in points], dtype=np.float32))
@@ -36,16 +43,17 @@ def display(im, decodedObjects):
     for j in range(0,n):
       cv2.line(im, hull[j], hull[ (j+1) % n], (255,0,0), 3)
 # Display results 
-  cv2.imshow("Results", im);
-  cv2.waitKey(0); 
+  res = cv2.resize(im,None,fx=0.5 , fy=0.5, interpolation = cv2.INTER_CUBIC)  
+  cv2.imshow("Results", res);
+  cv2.waitKey(0);
+  cv2.destroyAllWindows() 
 
 # remove barcode and QR code location  
-def remove(im, decodedObjects):
+def remove(im, decodedObjects,fact=1):
  
   # Loop over all decoded objects
   for decodedObject in decodedObjects: 
-    points = decodedObject.polygon
- 
+    points = scale(decodedObject.polygon,fact)
     # If the points do not form a quad, find convex hull
     if len(points) > 4 : 
       hull = cv2.convexHull(np.array([point for point in points], dtype=np.float32))
