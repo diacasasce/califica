@@ -309,7 +309,7 @@ class Application(tk.Frame):
 root = tk.Tk()
 root.title('Calificación de examenes tipo Icfes')
 root.geometry('803x603+10+10')
-root.iconbitmap("zigma.ico")
+root.iconbitmap("./img/zigma.ico")
 fondo=PhotoImage(file="./img/fondo.png")
 lblFondo=Label(root,image=fondo).place(x=0,y=0) #fondo 
 
