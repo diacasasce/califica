@@ -10,7 +10,6 @@ import requests # Para las llamadas GET y Post
 import threading
 from time import sleep
 
-
 #from funciones.py import *
 #pop up
 def popupmsg(msg):
@@ -27,11 +26,17 @@ def popupmsg(msg):
 class Application(tk.Frame):
 
     permiso = "No"
+    
+        
 
     def __init__(self, master=None):
         super().__init__(master)
         self.pack()
         self.create_widgets()
+        self.th1 = threading.Thread(target=self.califica, name='califica')
+        self.th1.daemon=True
+        self.th2 = threading.Thread(target=pr.scanAll, name='scanner')
+        self.th2.daemon=True
 
     def create_widgets(self):
         #self.hi_there = tk.Button(self)
@@ -166,10 +171,8 @@ class Application(tk.Frame):
             done=pr.calificaFolder('origen/','origen/procesados/',True)
         popupmsg(' Se han procesado todas las pruebas')
     def Escanear(self,dt):
-        th1 = threading.Thread(target=self.califica, name='califica')
-        th1.start()
-        th2 = threading.Thread(target=pr.scanAll, name='scanner')
-        th2.start()
+        self.th1.start()
+        self.th2.start()
         
     def EscanearOK(self,dt):
         #Muestra la ventana para ingresar codigo de prueba y escanear
