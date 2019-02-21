@@ -31,8 +31,9 @@ def send(idp,ide,res,retry=0):
 			print(str(idp)+"-"+str(ide)+" se reintento "+str(retry)+" veces")
 			print("error de conexion")
 
-def calificaFolder(folder,baseDir='./'):
-	sleep(3)
+def calificaFolder(folder,baseDir='./',envia=False):
+	sleep(10)
+	f = open("registro.txt", "a")		
 	print(datetime.datetime.now())
 	checkFolder(baseDir)
 	lst=listFolder(folder,".jpg")
@@ -42,12 +43,15 @@ def calificaFolder(folder,baseDir='./'):
 	th=(100,50,230)
 	sleep(2)
 	while len(lst)>0:
-		sleep(0)
+		sleep(1)
 		#print(lst[0])
 		file_name=folder+lst[0]
 		idp,ide,res=Califica(file_name,th,baseDir)
-		send(idp,ide,res)
-		#print(idp,ide,res)
+		if envia:
+			send(idp,ide,res)
+		else:
+			f.write(idp+','+ide+','+res+'\r\n') 
+			print(idp,ide,res)
 		#if ide!='':
 			#print(lst[0])
 		lst=listFolder(folder,".jpg")

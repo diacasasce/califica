@@ -163,7 +163,7 @@ class Application(tk.Frame):
     def califica(self):
         done=False
         while not done:
-            done=pr.calificaFolder('origen/','origen/procesados/')
+            done=pr.calificaFolder('origen/','origen/procesados/',True)
         popupmsg(' Se han procesado todas las pruebas')
     def Escanear(self,dt):
         th1 = threading.Thread(target=self.califica, name='califica')

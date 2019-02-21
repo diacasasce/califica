@@ -49,12 +49,14 @@ def test(file):
     fact=3
     detected=qr_det(QR,fact)
     if detected:
+        print(detected)
         CR.display(im,detected,fact)
         cl.show('test',CR.remove(im,detected,fact))
     
 
-
-folder='./origen/procesados/sinQR/'
-files=fs.listFolder('./origen/procesados/sinQR/','.jpg')
+print('hello')
+folder='./origen/procesados/29/'
+files=fs.listFolder('./origen/procesados/29/','.jpg')
 for file in files:
+    input()
     test(folder+file)
