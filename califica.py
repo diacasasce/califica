@@ -21,7 +21,7 @@ def filter(contours,areas,ratio,solid,ima):
     coor=[]
     area,Uarea=areas
     refsa=(ima.copy()*0)
-#    refss=(ima.copy()*0)
+    refss=(ima.copy()*0)
 
     for cnt in contours:
         Carea = cv.contourArea(cnt)
@@ -32,6 +32,8 @@ def filter(contours,areas,ratio,solid,ima):
         hull_area = cv.contourArea(hull)
         cx=0
         cy=0
+        mx=0
+        my=0
         if M['m00']!=0 :
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
@@ -39,36 +41,60 @@ def filter(contours,areas,ratio,solid,ima):
             cby=y+(h/2)  
             mx=int((cx+cbx)/2)
             my=int((cy+cby)/2)
-#        cv.circle(refss,(mx,my), 20, (0,0,255), -1)
+            cv.circle(refss,(mx,my), 20, (0,0,255), -1)
                     
         if hull_area>0:
             Csolid = float(Carea)/hull_area
         else:
             Csolid=0
         if Carea>area and Carea<Uarea:
-            if abs(Cratio-ratio)<(0.7*ratio):
-                if(abs(Csolid-solid)<(0.7*solid)):     
-                    result.append(cnt)
-                    cv.circle(refsa,(mx,my), 20, (0,0,255), -1)
-                    coor.append((mx,my))
-
+            #if abs(Cratio-ratio)<(0.7*ratio):
+            if(abs(Csolid-solid)<(0.7*solid)):     
+                result.append(cnt)
+                cv.circle(refsa,(mx,my), 20, (0,0,255), -1)
+                coor.append((mx,my))
+            else:
+                print(Csolid,abs(Csolid-solid),(0.7*solid))
+                cv.circle(refsa,(mx,my), 20, (0,255,255), -1)    
+            #else:
+            #    print(Cratio,abs(Cratio-ratio),(0.7*ratio))
+            #    cv.circle(refsa,(mx,my), 30, (255,0,255), -1)
+        elif Carea>Uarea:
+            cv.circle(refsa,(mx,my), 20, (0,255,0), -1)
+                    
     #cv.drawContours(refs, result, cv.FILLED, (255,255,255))
     #show('rf',refsa[1000:2000,400:4500],0.15)
-    #show('ima1',refss,last=False)
+    show('ima1',refss,last=False)
+
+    show('ima2',refsa)
     return (result,refsa,coor)
+def shakeLR(im,sh,times=1):
+    mask=im
+    for i in range(times):
+        shape=mask.shape
+        otherL=mask.copy()
+        otherR=mask.copy()
+        otherL[0:shape[0]-sh,0:shape[1]-sh]=mask[sh:shape[0],sh:shape[1]]
+        otherR[sh:shape[0],sh:shape[1]]=mask[0:shape[0]-sh,0:shape[1]-sh]
+        mask=cv.add(otherL,otherR)
+    return mask
 def get_contour(img,th):
-    #show('ori',img)
+    #show('ori',img,0.5)
     # quita numeros y parte manuscrita
     img[0:500,550:1700]=255+(img[0:500,550:1700]*0)
-    img[0:130,0:550]=255+(img[0:130,0:550]*0)
-    #show('init2',img)
+    img[0:100,0:550]=255+(img[0:100,0:550]*0)
     (LOW,MED,HIGH)=th
     res = cv.resize(img,None,fx=3, fy=3, interpolation = cv.INTER_CUBIC)
-    #show('ori r',res)
+    show('ori r',res)
     #res=img
     frame=img.copy()
     gray = cv.cvtColor(res,cv.COLOR_BGR2GRAY)
     hsv = cv.cvtColor(res, cv.COLOR_BGR2HSV)
+    show('hsv',hsv,last=False)
+
+    hsvb = cv.bilateralFilter(hsv,5,100,100)
+    show('hsvb',hsvb,)
+    
     h,s,v=cv.split(hsv)
     black = np.array([0,0,0])
     vr=''
@@ -81,27 +107,44 @@ def get_contour(img,th):
     qwe=np.asarray((s>50),np.uint8)        
     quee=255*qwe
     mask=mask-quee
-    #show('init',mask,0.15,last=False)
+    blur = cv.blur(mask,(11,11))
     
-    openn = cv.morphologyEx(mask, cv.MORPH_OPEN, kernel)
-    #show('st013',openn,0.15,last=False)
+    show('init',mask,0.15,last=False)
+    other=shakeLR(mask,5,1)
+    show('other',other,0.15,last=False)
+    added=cv.add(mask,other)
+    show('addd',added,0.15)
+    
+    openn = cv.morphologyEx(added, cv.MORPH_OPEN, kernel)
+    show('st1',openn,0.15,last=False)
     closing = cv.morphologyEx(openn, cv.MORPH_CLOSE, kernel3)
-    #show('st023',closing,0.15,last=False)
+    show('st2',closing,0.15,last=False)
     erosion = cv.erode(closing,kernel,iterations = 3)
-    #show('st13',erosion,0.15,last=False)
+    erosion = cv.morphologyEx(erosion, cv.MORPH_CLOSE, kernel5)    
+    show('st3',erosion,0.15,last=False)
+    erosion = cv.erode(erosion,cv.getStructuringElement(cv.MORPH_RECT,(5,1)),iterations = 3)
+    show('st3y',erosion,0.15,last=False)
+
     dilation = cv.dilate(erosion,kernel3,iterations = 2)
-    dilation = cv.dilate(dilation,kernel,iterations = 1)
-    #show('st23',dilation,0.15,last=False)
+    #dilation = cv.dilate(dilation,kernel,iterations = 1)
+    show('st4',dilation,0.15,last=False)
     closing = cv.morphologyEx(dilation, cv.MORPH_CLOSE, kernel5)
     closing = cv.morphologyEx(closing, cv.MORPH_CLOSE, kernel5)
-    #show('st33',closing,last=False)
+    show('st5',closing,last=False)
 
-    erosion = cv.erode(closing,cv.getStructuringElement(cv.MORPH_CROSS,(3,3)),iterations = 6)
-    #show('st44',erosion,0.15,last=False)
+    #erosion = cv.erode(closing,cv.getStructuringElement(cv.MORPH_CROSS,(3,3)),iterations = 6)
+    #show('st6',erosion,0.15,last=False)
+    #erosiony = cv.erode(erosion,cv.getStructuringElement(cv.MORPH_RECT,(5,1)),iterations = 6)
+    #show('st6y',erosiony,0.15,last=False)
+    erosion = cv.erode(closing,cv.getStructuringElement(cv.MORPH_RECT,(5,1)),iterations = 6)
+    show('st6y',erosion,0.15,last=False)
+
     closing = cv.morphologyEx(erosion, cv.MORPH_CLOSE,np.ones((25,25),np.uint8))
-    #show('st33',closing,0.15,last=False)
-    prep=closing
-    #show('test',prep)
+    show('st7',closing,0.15,last=False)
+    prep=closing.copy()
+    show('test',prep,last=False)
+    
+    
     #plt.figure(1)
     #plt.imshow(prep)
     #plt.show()
@@ -112,7 +155,7 @@ def get_contour(img,th):
 
     # Create the marker image for the watershed algorithm
     markers = np.zeros(prep.shape, dtype=np.int32) 
-    cntr,imf,coor=filter(contours,(1500,9000),1,1,res)
+    cntr,imf,coor=filter(contours,(1500,10000),1,1,res)
     #show('st12',imf,0.15)
     # Draw the foreground markers
     #print(len(contours))
@@ -296,15 +339,30 @@ def Califica(file,th,baseDir):
     OldName=file
     newName=file
     Idprueba,Id,response=(False,False,False)
-
     #carga image
-    #print(file)
+    print(file)
     im = cv.imread(file)
+    #implus= cv.add(~im,~im)
+    #implus= cv.add(implus,implus)
+    #implus= cv.add(implus,implus)
+    
     save=cv.imread(file)
-    #print(im.shape)
-    #show('original',im)
+    print(im.shape)
+    #plt.figure(1)
+    #plt.imshow(~im)
+    #plt.show()
+    #show('original',im,0.5)
+    #plt.figure(1)
+    #plt.imshow(implus)
+    #plt.show()
+    #plt.figure(1)
+    #plt.imshow(~implus)
+    #plt.show()
+    
+    #input('???')
+
     QR= im[0:800,0:1700]
-    #show('QR',QR)
+    #show('QR',QR,0.5)
     #print(QR.shape)
     #decodeQR
     fact=3
@@ -319,8 +377,14 @@ def Califica(file,th,baseDir):
         #CR.display(QR,decodedObjects)
         #removeQr
         imrQ=CR.remove(im, decodedObjects,fact)
+        #plt.figure(1)
+        #plt.imshow(imrQ)
+        #plt.show()
+        #show('after qr',imrQ,0.5)
         ##remove logo
         imr= imrQ[300:4200,0:1700]
+        show('after qr',imr,0.5)
+        
         #518
         #474    
         #print(decodedObjects[0].rect)
@@ -329,22 +393,23 @@ def Califica(file,th,baseDir):
         #generar contornos
         cont,mrk,imFilter,coor =get_contour(imr,th)
         imra=imFilter.copy()
+        
         cv.circle(imra,(anX,anY), 100, (0,0,255), -1)
         
         #print(anX,anY)
-        #show('test',imra)
+        show('test',imra)
         U=anY-530
         B=1500
         #print(B)
-        L=anX-3300
+        L=anX-3400
         R=anX-2000
         #print(R)
         #inserta las lineas
-        #for i in range(0,11):
-            #sp=90*i
-            #cv.line(imFilter,(0,U+sp),(2000,U+sp),(255,0,0),5)
-            #cv.line(imFilter,(L+(40*i),U),(L+(40*i),B),(255,0,0),5)
-        #show('fili1',imFilter[U:B,L:R],0.5)
+        for i in range(0,11):
+            sp=90*i
+            cv.line(imFilter,(0,U+sp),(2000,U+sp),(255,0,0),5)
+            cv.line(imFilter,(L+(40*i),U),(L+(40*i),B),(255,0,0),5)
+        show('fili1',imFilter[U:B,L:R],0.5)
         # obtiene documento de identidad  --- Id 
         #(120,427,140,530)
         #Rx=input('rx?' )
@@ -355,23 +420,24 @@ def Califica(file,th,baseDir):
         #contorno a respuest
         resu=['0']*(int(Max))
         first_line=anY+670
-        mar=(L-10,L+4000,112)        
-        he=100
-        secs=get_section(first_line,pre,he,180)
+        mar=(L-10,L+4000,115)        
+        he=109
+        secs=get_section(first_line,pre,he,170)
         qwe=0
         #print(secs)
-        for lim in secs:
-            #print(lim)
+        for i in range(0, len(secs)):
+            lim=secs[i]
+            pr=pre[i]
             U,B=lim
             L,R,Q=mar
-            #for i in range(0,5):
-            #    sp=100*i
-            #    cv.line(imFilter,(L,U+sp),(R,U+sp),(0,255,255),5)
-            #for i in range(0,35):
-            #    sp=Q*i
-            #    cv.line(imFilter,(L+sp,U),(L+sp,B),(0,255,255),5)
-            #show('fili'+str(qwe),imFilter[U:B,L:R],0.3,False)
-            #qwe+=1
+            for i in range(0,int(pr)+1):
+                sp=he*i
+                cv.line(imFilter,(L,U+sp),(R,U+sp),(0,255,255),5)
+            for i in range(0,36):
+                sp=Q*i
+                cv.line(imFilter,(L+sp,U),(L+sp,B),(0,255,255),5)
+            show('fili'+str(qwe),imFilter[U:B,L:R],0.3,False)
+            qwe+=1
         #print(secs)
         
         resu=get_resp_c(mar,coor,pre,secs,he,resu)
@@ -382,15 +448,15 @@ def Califica(file,th,baseDir):
         response=''.join(resp)
         folder=checkFolder(baseDir+Idprueba)
         nm=str(Id)
-        #print(datetime.datetime.now())
+        #print(datetime.datetime.now())py
         #input('ALMOST')
         newName=folder+"/"+nm+".jpg"
         k=1
         while os.path.isfile(newName)==True:
             newName=folder+"/"+nm+'-'+str(k)+".jpg"
             k+=1
-#        print((Idprueba,Id,response))
-#        show('fili',imFilter,0.15)
+        print((Idprueba,Id,response))
+        show('fili',imFilter,0.15)
 #        input('ready??')
         cv.imwrite(newName,save)
     #    ctName=folder+"/ct-"+nm+".jpg"
