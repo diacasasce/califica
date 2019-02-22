@@ -81,7 +81,7 @@ def shakeLR(im,sh,times=1):
 def get_contour(img,th):
     #show('ori',img,0.5)
     # quita numeros y parte manuscrita
-    img[0:500,550:1700]=255+(img[0:500,550:1700]*0)
+    img[0:500,600:1700]=255+(img[0:500,600:1700]*0)
     img[0:100,0:550]=255+(img[0:100,0:550]*0)
     (LOW,MED,HIGH)=th
     res = cv.resize(img,None,fx=3, fy=3, interpolation = cv.INTER_CUBIC)
@@ -360,9 +360,9 @@ def Califica(file,th,baseDir):
     #plt.show()
     
     #input('???')
-
+    show('original',im,0.5)
     QR= im[0:800,0:1700]
-    #show('QR',QR,0.5)
+    show('QR',QR,0.5)
     #print(QR.shape)
     #decodeQR
     fact=3
@@ -380,9 +380,9 @@ def Califica(file,th,baseDir):
         #plt.figure(1)
         #plt.imshow(imrQ)
         #plt.show()
-        #show('after qr',imrQ,0.5)
+        show('after qr',imrQ,0.5)
         ##remove logo
-        imr= imrQ[300:4200,0:1700]
+        imr= imrQ[200:4200,0:1700]
         show('after qr',imr,0.5)
         
         #518
@@ -398,10 +398,10 @@ def Califica(file,th,baseDir):
         
         #print(anX,anY)
         show('test',imra)
-        U=anY-530
+        U=anY-230
         B=1500
         #print(B)
-        L=anX-3400
+        L=anX-3500
         R=anX-2000
         #print(R)
         #inserta las lineas
@@ -419,9 +419,9 @@ def Califica(file,th,baseDir):
         #input(Id)
         #contorno a respuest
         resu=['0']*(int(Max))
-        first_line=anY+670
-        mar=(L-10,L+4000,115)        
-        he=109
+        first_line=anY+1020
+        mar=(L+10,L+4000,118)        
+        he=112
         secs=get_section(first_line,pre,he,170)
         qwe=0
         #print(secs)
