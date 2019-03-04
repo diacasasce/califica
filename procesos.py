@@ -50,7 +50,7 @@ def calificaFolder(folder,baseDir='./',envia=False):
 		if envia:
 			send(idp,ide,res)
 		else:
-			f.write(idp+','+ide+','+res+'\r\n') 
+			f.write(str(idp)+','+str(ide)+','+str(res)+'\r\n') 
 			print(idp,ide,res)
 		#if ide!='':
 			#print(lst[0])
@@ -147,7 +147,7 @@ def scanAll():
 	
 
 #print(scanAll())
-#calificaFolder('origen/','origen/procesados/')
+#calificaFolder('origen/','origen/procesados/',True)
 #th=(100,170,210)
 #idp,ide,res=Califica('origen/pic0001.jpg',th,'origen/procesados/')
 #print((idp,ide,res))
