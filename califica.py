@@ -5,7 +5,7 @@ from fs import checkFolder
 import codeReader as CR
 import datetime
 import os
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 
 def fillHoles(im_th):
     im_floodfill = im_th.copy()
