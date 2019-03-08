@@ -69,8 +69,8 @@ def filter(contours,areas,ratio,solid,ima):
                     
     #cv.drawContours(refs, result, cv.FILLED, (255,255,255))
     #show('rf',refsa[1000:2000,400:4500],0.15)
-    #show('ima1',ima,last=False)
-    #show('ima2',refsa)
+    show('ima1',ima,last=False)
+    show('ima2',refsa)
     return (result,refsa,coor)
 def shakeLR(im,sh,times=1):
     mask=im
@@ -94,7 +94,7 @@ def shakeRL(im,sh,times=1):
     return mask
 def get_contour(img,th):
     res=img
-    #show('ori',img)
+    show('ori',img)
     # quita numeros y parte manuscrita
     (LOW,MED,HIGH)=th
     #show('ori r',res)
@@ -171,7 +171,7 @@ def get_contour(img,th):
     #show('st7',closing,0.15,last=False)
     prep=closing.copy()
     del closing
-    #show('test',prep)
+    show('test',prep)
     
     
     #plt.figure(1)
@@ -367,6 +367,23 @@ def floodFill(src,connectivity,tolerancia,point):
     cv.floodFill(src, None, point, (0, 255, 255), (tolerancia) * 3, (tolerancia) * 3, flags)
     return src
 #califica(file_name,103)
+def prescale(im):
+    QR= im[0:800,0:1700]
+    fact=3
+    decodedObjects=qr_det(QR,fact)
+    if decodedObjects:
+        height=decodedObjects[0].rect.height
+        width=decodedObjects[0].rect.width        
+        prom=(height+width)/2
+        factor=349/prom
+        print(height,width,prom)        
+        imres = cv.resize(im,None,fx=factor, fy=factor, interpolation = cv.INTER_CUBIC)
+    #show('prescales',imres,last=False)
+    #show('prescale',im)
+    return imres
+
+
+
 def Califica(file,th,baseDir):
     print('->',datetime.datetime.now())
     OldName=file
@@ -378,7 +395,8 @@ def Califica(file,th,baseDir):
     #implus= cv.add(~im,~im)
     #implus= cv.add(implus,implus)
     #implus= cv.add(implus,implus)
-    
+    im=prescale(im)
+
     save=cv.imread(file)
     h,w,_=im.shape
     #print(h,w)
@@ -396,7 +414,9 @@ def Califica(file,th,baseDir):
     #input('???')
     #show('original',im,0.5)
     
+
     QR= im[500:800,1000:w].copy()
+
     id_part = im[0:800,0:800].copy()
     res_part = im[800:h,0:w].copy()
     #preprocesamiento de imagen - identficacion
@@ -438,8 +458,7 @@ def Califica(file,th,baseDir):
         #CR.display(QR,decodedObjects)
         #removeQr
         
-        im[0:720,600:1700]=255
-        im[0:420,0:1700]=255
+        
         #plt.figure(1)
         #plt.imshow(im)
         #plt.show()
@@ -448,7 +467,17 @@ def Califica(file,th,baseDir):
         #print(decodedObjects[0].rect)
         imres = cv.resize(imrQ,None,fx=3, fy=3, interpolation = cv.INTER_CUBIC)
         h,w,_=imres.shape
-        fr=700
+        top=decodedObjects[0].rect.top
+        Li=decodedObjects[0].rect.left
+        Ui=top-520
+        imres[0:top+100,int(2*w/6):w]=255
+        imres[0:Ui,0:w]=255
+        
+        cv.circle(imres,(Ui,Li), 20, (0,0,255), -1)
+        show('after qr',imres)
+        fr=Ui
+
+
         imres=imres[fr:h, 0:w]
         anX=decodedObjects[0].rect.left
         anY=decodedObjects[0].rect.top-fr
@@ -461,8 +490,10 @@ def Califica(file,th,baseDir):
         #print(B)
         L=Li
         R=Li+1100
-        
+        #print(Ui,Li)
         #show('after qr',imrQ,0.5)
+        
+
         ##remove logo
         
         #show('sc',imres,last=False)
@@ -492,10 +523,13 @@ def Califica(file,th,baseDir):
         for i in range(0,11):
             sp=Ry*i
             cv.line(imcnt,(L,U+sp),(R,U+sp),(255,255,255),15)
+            #cv.line(imcnt,(L,U+sp),(R,U+sp),(255,0,0),15)
             sp=(Ry+13)*i
             cv.line(imcnt,(L+(sp),U),(L+(sp),B),(255,255,255),15)
             #cv.line(imres,(0,U+sp),(2000,U+sp),(255,0,0),5)
+        
         cv.rectangle(imres,(L,U),(R,B),(255,0,255),3)
+        show('res',imres)
         first_line=Ur
         mar=(Lr,Lr+4000,112)        
         he=106
