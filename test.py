@@ -14,7 +14,7 @@ if folder[-1]!='/':
 for file in dir:
     name=folder+file
     th=(100,50,230)
-    idp,ide,res=Califica(name,th,'./')
+    idp,ide,res=Califica(name,th,'./origen/procesados/')
     if envia:
         pr.send(idp,ide,res)
     else:

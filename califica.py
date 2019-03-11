@@ -17,6 +17,7 @@ def fillHoles(im_th):
     return im_out
 
 def filter(contours,areas,ratio,solid,ima):
+    print(len(contours))
     result=[]
     coor=[]
     area,Uarea=areas
@@ -69,8 +70,8 @@ def filter(contours,areas,ratio,solid,ima):
                     
     #cv.drawContours(refs, result, cv.FILLED, (255,255,255))
     #show('rf',refsa[1000:2000,400:4500],0.15)
-    show('ima1',ima,last=False)
-    show('ima2',refsa)
+   #show('ima1',refss,last=False)
+   #show('ima2',refsa)
     return (result,refsa,coor)
 def shakeLR(im,sh,times=1):
     mask=im
@@ -92,9 +93,10 @@ def shakeRL(im,sh,times=1):
         otherR[0:shape[0]-sh,sh:shape[1]]=mask[sh:shape[0],0:shape[1]-sh]
         mask=cv.add(otherL,otherR)
     return mask
-def get_contour(img,th):
+def get_contour(img,th,grid):
     res=img
-    show('ori',img)
+    grid,_,_=cv.split(grid)
+    #show('ori',~grid)
     # quita numeros y parte manuscrita
     (LOW,MED,HIGH)=th
     #show('ori r',res)
@@ -135,7 +137,7 @@ def get_contour(img,th):
     erosion = cv.erode(erosion,cv.getStructuringElement(cv.MORPH_RECT,(5,1)),iterations = 3)
     #show('st3y',erosion,0.15,last=False)
 
-    dilation = cv.dilate(erosion,kernel3,iterations = 1)
+    dilation = cv.dilate(erosion,kernel3,iterations = 2)
 #    dilation = cv.dilate(dilation,kernel,iterations = 1)
     #show('st4',dilation,0.15)
 
@@ -163,15 +165,15 @@ def get_contour(img,th):
     #show('st6y',erosiony,0.15,last=False)
     erosion = cv.erode(closing,np.ones((21,21),np.uint8),iterations = 1)
     #show('st6y',erosion,0.15,last=False)
-    erosion = cv.dilate(erosion,np.ones((7,7),np.uint8),iterations = 1)
+    erosion = cv.dilate(erosion,np.ones((7,7),np.uint8),iterations = 2)
     erosion = cv.dilate(erosion,np.ones((3,3),np.uint8),iterations = 6)
     #show('st6z',erosion,0.15,last=False)
     closing = cv.morphologyEx(erosion, cv.MORPH_CLOSE,np.ones((9,9),np.uint8))
     del erosion
     #show('st7',closing,0.15,last=False)
-    prep=closing.copy()
+    prep=cv.bitwise_and(closing.copy(),~grid)
     del closing
-    show('test',prep)
+   #show('test',prep)
     
     
     #plt.figure(1)
@@ -474,7 +476,7 @@ def Califica(file,th,baseDir):
         imres[0:Ui,0:w]=255
         
         cv.circle(imres,(Ui,Li), 20, (0,0,255), -1)
-        show('after qr',imres)
+       #show('after qr',imres)
         fr=Ui
 
 
@@ -519,17 +521,21 @@ def Califica(file,th,baseDir):
         #inserta las lineas
         Ry=88
         Rx=30
-
+        imgrid=imcnt.copy()*0
         for i in range(0,11):
             sp=Ry*i
             cv.line(imcnt,(L,U+sp),(R,U+sp),(255,255,255),15)
+            cv.line(imgrid,(L,U+sp),(R,U+sp),(255,255,255),15)
+            
             #cv.line(imcnt,(L,U+sp),(R,U+sp),(255,0,0),15)
             sp=(Ry+13)*i
             cv.line(imcnt,(L+(sp),U),(L+(sp),B),(255,255,255),15)
+            cv.line(imgrid,(L+(sp),U),(L+(sp),B),(255,255,255),15)
+            
             #cv.line(imres,(0,U+sp),(2000,U+sp),(255,0,0),5)
-        
+        #cv.rectangle(imgrid,(L,U),(R,B),(255,255,255),3)
         cv.rectangle(imres,(L,U),(R,B),(255,0,255),3)
-        show('res',imres)
+       #show('res',imres)
         first_line=Ur
         mar=(Lr,Lr+4000,112)        
         he=106
@@ -544,14 +550,18 @@ def Califica(file,th,baseDir):
             for i in range(0,int(pr)+1):
                 sp=he*i
                 cv.line(imcnt,(L,U+sp),(R,U+sp),(255,255,255),5)
+                cv.line(imgrid,(L,U+sp),(R,U+sp),(255,255,255),20)
             for i in range(0,36):
                 sp=Q*i
                 cv.line(imcnt,(L+sp,U),(L+sp,B),(255,255,255),5)
+                cv.line(imgrid,(L+sp,U),(L+sp,B),(255,255,255),20)
                 
             #show('fili'+str(qwe),imFilter[U:B,L:R],0.3,False)
             qwe+=1
         #show('imcnt',imcnt,0.5)
-        cont,mrk,imFilter,coor =get_contour(imcnt,th)
+       #show('imcnt',imgrid,0.15)
+        
+        cont,mrk,imFilter,coor =get_contour(imcnt,th,imgrid)
         cv.circle(imres,(anX,anY), 20, (255,0,255), -1)
         cv.circle(imres,(Li,Ui), 20, (255,0,0), -1)
         cv.circle(imres,(Lr,Ur), 20, (0,255,0), -1)
@@ -638,7 +648,7 @@ def Califica(file,th,baseDir):
         #input('ready??')
 #        input(newName)
         print(Idprueba,Id,response)
-        #show('filtro',imres)
+       #show('filtro',imres)
         #input('ready')
         print(cv.imwrite(newName,save))
         #folder=checkFolder(baseDir+Idprueba+'/grid')
@@ -653,6 +663,7 @@ def Califica(file,th,baseDir):
         newName=folder+"/"+tail
         cv.imwrite(newName,save)
         #cv.imwrite(ctName,imFilter)
+    
     if os.path.isfile(newName):
         #print(file)
         os.remove(file)
