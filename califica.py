@@ -17,7 +17,7 @@ def fillHoles(im_th):
     return im_out
 
 def filter(contours,areas,ratio,solid,ima):
-    print(len(contours))
+    #print(len(contours))
     result=[]
     coor=[]
     area,Uarea=areas
@@ -43,35 +43,28 @@ def filter(contours,areas,ratio,solid,ima):
             mx=int((cx+cbx)/2)
             my=int((cy+cby)/2)
             cv.circle(refss,(mx,my), 20, (0,0,255), -1)
-                    
-        if hull_area>0:
-            Csolid = float(Carea)/hull_area
-        else:
-            Csolid=0
+        #print(Carea)        
         if area <= Carea <= Uarea:
-            #if abs(Cratio-ratio)<(0.7*ratio):
-            if(abs(Csolid-solid)<(0.7*solid)):     
-                result.append(cnt)
-                cv.circle(refsa,(mx,my), 20, (0,0,255), -1)
-                coor.append((mx,my))
-            else:
-                print(Csolid,abs(Csolid-solid),(0.7*solid))
-                cv.circle(refsa,(mx,my), 20, (0,255,255), -1)    
+            
+            result.append(cnt)
+            cv.circle(refsa,(mx,my), 20, (0,0,255), -1)
+            coor.append((mx,my))  
+            
             #else:
             #    print(Cratio,abs(Cratio-ratio),(0.7*ratio))
             #    cv.circle(refsa,(mx,my), 30, (255,0,255), -1)
-        elif Carea>Uarea:
-            cv.circle(refsa,(mx,my), 20, (0,255,0), -1)
-        elif (0.8*area)<=Carea<area:
-            cv.circle(refsa,(mx,my), 20, (255,255,0), -1)
-            print(Carea)
-        elif Carea<(0.8*area):
-            cv.circle(refsa,(mx,my), 20, (255,0,255), -1)
+#        elif Carea>Uarea:
+#            cv.circle(refsa,(mx,my), 20, (0,255,0), -1)
+#        elif (0.8*area)<=Carea<area:
+#            cv.circle(refsa,(mx,my), 20, (255,255,0), -1)
+#            print(Carea)
+#        elif Carea<(0.8*area):
+#            cv.circle(refsa,(mx,my), 20, (255,0,255), -1)
                     
     #cv.drawContours(refs, result, cv.FILLED, (255,255,255))
     #show('rf',refsa[1000:2000,400:4500],0.15)
-   #show('ima1',refss,last=False)
-   #show('ima2',refsa)
+    #show('ima1',refss,last=False)
+    #show('ima2',refsa)
     return (result,refsa,coor)
 def shakeLR(im,sh,times=1):
     mask=im
@@ -151,7 +144,7 @@ def get_contour(img,th,grid):
     
     blackhat = cv.morphologyEx(closing, cv.MORPH_BLACKHAT, np.ones((21,21),np.uint8))
     closing=cv.add(blackhat,closing)
-    clos=fillHoles(closing)
+    closing=cv.bitwise_and(closing,~grid)
     #show('bh',blackhat,last=False)
     
     #show('st5',closing,last=False)
@@ -164,16 +157,17 @@ def get_contour(img,th,grid):
     #erosiony = cv.erode(erosion,cv.getStructuringElement(cv.MORPH_RECT,(5,1)),iterations = 6)
     #show('st6y',erosiony,0.15,last=False)
     erosion = cv.erode(closing,np.ones((21,21),np.uint8),iterations = 1)
+    erosion=cv.bitwise_and(erosion,~grid)
     #show('st6y',erosion,0.15,last=False)
     erosion = cv.dilate(erosion,np.ones((7,7),np.uint8),iterations = 2)
-    erosion = cv.dilate(erosion,np.ones((3,3),np.uint8),iterations = 6)
-    #show('st6z',erosion,0.15,last=False)
+    erosion = cv.dilate(erosion,np.ones((3,3),np.uint8),iterations = 3)
+    #show('st6a',erosion,0.15,last=False)
     closing = cv.morphologyEx(erosion, cv.MORPH_CLOSE,np.ones((9,9),np.uint8))
     del erosion
     #show('st7',closing,0.15,last=False)
     prep=cv.bitwise_and(closing.copy(),~grid)
     del closing
-   #show('test',prep)
+    #show('test',prep)
     
     
     #plt.figure(1)
@@ -185,7 +179,7 @@ def get_contour(img,th,grid):
     _, contours, _ = cv.findContours(prep, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
     # Create the marker image for the watershed algorithm
-    cntr,imf,coor=filter(contours,(800,10000),1,1,res)
+    cntr,imf,coor=filter(contours,(1600,10000),1,1,res)
     #show('st12',imf,0.15)
     # Draw the foreground markers
     #print(len(contours))
@@ -424,7 +418,8 @@ def Califica(file,th,baseDir):
     #preprocesamiento de imagen - identficacion
     median = cv.medianBlur((~id_part),11)
     gray = cv.cvtColor(median,cv.COLOR_BGR2GRAY)
-    _, otsu = cv.threshold(gray,25,255,cv.THRESH_BINARY)
+    _, otsu = cv.threshold(gray,100,255,cv.THRESH_BINARY)
+    #show('otsu',otsu,0.9,False)
     merge=cv.merge((~otsu,~otsu,~otsu))
     ipm=cv.bitwise_and(id_part,merge)
     #preprocesamiento de imagen - respuestas
@@ -525,12 +520,12 @@ def Califica(file,th,baseDir):
         for i in range(0,11):
             sp=Ry*i
             cv.line(imcnt,(L,U+sp),(R,U+sp),(255,255,255),15)
-            cv.line(imgrid,(L,U+sp),(R,U+sp),(255,255,255),15)
+            cv.line(imgrid,(L,U+sp),(R,U+sp),(255,255,255),30)
             
             #cv.line(imcnt,(L,U+sp),(R,U+sp),(255,0,0),15)
             sp=(Ry+13)*i
             cv.line(imcnt,(L+(sp),U),(L+(sp),B),(255,255,255),15)
-            cv.line(imgrid,(L+(sp),U),(L+(sp),B),(255,255,255),15)
+            cv.line(imgrid,(L+(sp),U),(L+(sp),B),(255,255,255),30)
             
             #cv.line(imres,(0,U+sp),(2000,U+sp),(255,0,0),5)
         #cv.rectangle(imgrid,(L,U),(R,B),(255,255,255),3)
@@ -550,16 +545,16 @@ def Califica(file,th,baseDir):
             for i in range(0,int(pr)+1):
                 sp=he*i
                 cv.line(imcnt,(L,U+sp),(R,U+sp),(255,255,255),5)
-                cv.line(imgrid,(L,U+sp),(R,U+sp),(255,255,255),20)
+                cv.line(imgrid,(L,U+sp),(R,U+sp),(255,255,255),50)
             for i in range(0,36):
                 sp=Q*i
                 cv.line(imcnt,(L+sp,U),(L+sp,B),(255,255,255),5)
-                cv.line(imgrid,(L+sp,U),(L+sp,B),(255,255,255),20)
+                cv.line(imgrid,(L+sp,U),(L+sp,B),(255,255,255),50)
                 
             #show('fili'+str(qwe),imFilter[U:B,L:R],0.3,False)
             qwe+=1
         #show('imcnt',imcnt,0.5)
-       #show('imcnt',imgrid,0.15)
+        #show('imcnt',imgrid,0.15)
         
         cont,mrk,imFilter,coor =get_contour(imcnt,th,imgrid)
         cv.circle(imres,(anX,anY), 20, (255,0,255), -1)
@@ -631,7 +626,6 @@ def Califica(file,th,baseDir):
 
         folder=checkFolder(baseDir+Idprueba)
         folder='./'+folder
-        print()
         nm=OldName
         nm=str(Id)
         #print(datetime.datetime.now())
