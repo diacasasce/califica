@@ -435,7 +435,7 @@ def Califica(file,th,baseDir):
     #Reasignacion de matrices
     im[800:h,0:w]=rpm
     im[0:800,0:800]=ipm    
-    im[500:800,1000:1700]=QR
+    im[500:800,1000:w]=QR
     #show('sc',save,0.5,False)
     #show('sharpen2',im,0.5)   
     QR= im[0:800,0:1700]
