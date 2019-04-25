@@ -288,7 +288,7 @@ def get_resp_c(mar,coor,pre,secs,sz,resu):
                     if resu[posX+(35*i)]=='0':
                         resu[posX+(35*i)]=letras[int(posY)]
                     else:
-                        resu[posX+(35*i)]='X'
+                        resu[posX+(35*i)]='-'# caracter de duplicados
     #print(resu)                        
     return resu
 
@@ -318,7 +318,7 @@ def get_resp(pre,secs,sz,ctr,mar,resu,img):
                         if resu[posX+(35*i)]=='0':
                             resu[posX+(35*i)]=letras[int(posY)]
                         else:
-                            resu[posX+(35*i)]='X'
+                            resu[posX+(35*i)]='-' #Caracter de duplicados 
 
     #                cv.circle(img,(cx,cy), 10, (0,0,255), -1)
     #show('ctr',img)
