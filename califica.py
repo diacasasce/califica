@@ -587,44 +587,43 @@ def Califica(file,th,baseDir):
         #(120,427,140,530)
         #Rx=input('rx?' )
         Id=get_id_c((U,B,L,R),coor,int(Rx),int(Ry))
-        #input(Id)
-        #contorno a respuest
-        resu=['0']*(int(Max))
-        first_line=Ur
-        mar=(Lr,Lr+4000,112)        
-        he=106
-        secs=get_section(first_line,pre,he,161)
-        qwe=0
-        #print(secs)
-        for i in range(0, len(secs)):
-            lim=secs[i]
-            pr=pre[i]
-            U,B=lim
-            L,R,Q=mar
-            for i in range(0,int(pr)+1):
-                sp=he*i
-                cv.line(imFilter,(L,U+sp),(R,U+sp),(0,255,255),5)
-                cv.line(imres,(L,U+sp),(R,U+sp),(0,255,0),5)
-            for i in range(0,36):
-                sp=Q*i
-                cv.line(imFilter,(L+sp,U),(L+sp,B),(0,255,255),5)
-                cv.line(imres,(L+sp,U),(L+sp,B),(0,255,0),5)
-                
-            #show('fili'+str(qwe),imFilter[U:B,L:R],0.3,False)
-            qwe+=1
-        #print(secs)
-        #show('filiFul',imFilter,0.15)
-        resu=get_resp_c(mar,coor,pre,secs,he,resu)
-        #resu=get_resp(pre,secs,36,(cont,mrk),mar,resu,imr.copy())
-        resp=[]
-        for i in range(0,len(resu)):
-            resp.append(str(resu[i]))
-        response=''.join(resp)
-
-
-
-
-        folder=checkFolder(baseDir+Idprueba)
+        if len(Id)<12:
+          #input(Id)
+          #contorno a respuest
+          resu=['0']*(int(Max))
+          first_line=Ur
+          mar=(Lr,Lr+4000,112)        
+          he=106
+          secs=get_section(first_line,pre,he,161)
+          qwe=0
+          #print(secs)
+          for i in range(0, len(secs)):
+              lim=secs[i]
+              pr=pre[i]
+              U,B=lim
+              L,R,Q=mar
+              for i in range(0,int(pr)+1):
+                  sp=he*i
+                  cv.line(imFilter,(L,U+sp),(R,U+sp),(0,255,255),5)
+                  cv.line(imres,(L,U+sp),(R,U+sp),(0,255,0),5)
+              for i in range(0,36):
+                  sp=Q*i
+                  cv.line(imFilter,(L+sp,U),(L+sp,B),(0,255,255),5)
+                  cv.line(imres,(L+sp,U),(L+sp,B),(0,255,0),5)
+                  
+              #show('fili'+str(qwe),imFilter[U:B,L:R],0.3,False)
+              qwe+=1
+          #print(secs)
+          #show('filiFul',imFilter,0.15)
+          resu=get_resp_c(mar,coor,pre,secs,he,resu)
+          #resu=get_resp(pre,secs,36,(cont,mrk),mar,resu,imr.copy())
+          resp=[]
+          for i in range(0,len(resu)):
+              resp.append(str(resu[i]))
+          response=''.join(resp)
+          folder=checkFolder(baseDir+Idprueba)
+        else :
+          folder=''
         folder='./'+folder
         nm=OldName
         nm=str(Id)
@@ -640,9 +639,9 @@ def Califica(file,th,baseDir):
             k+=1
         #show('fili',imFilter,0.15)
         #input('ready??')
-#        input(newName)
+        #input(newName)
         print(Idprueba,Id,response)
-       #show('filtro',imres)
+        #show('filtro',imres)
         #input('ready')
         print(cv.imwrite(newName,save))
         #folder=checkFolder(baseDir+Idprueba+'/grid')
