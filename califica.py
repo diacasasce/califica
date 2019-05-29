@@ -388,12 +388,21 @@ def Califica(file,th,baseDir):
     #carga image
     print(file)
     im = cv.imread(file)
+    cv.imwrite(newName,im)
+    im = cv.imread(file)
+    cv.imwrite(newName,im)
+    im = cv.imread(file)
+    cv.imwrite(newName,im)
+    im = cv.imread(file)
+    cv.imwrite(newName,im)
+    im = cv.imread(file)
     #implus= cv.add(~im,~im)
     #implus= cv.add(implus,implus)
     #implus= cv.add(implus,implus)
     im=prescale(im)
 
     save=cv.imread(file)
+
     h,w,_=im.shape
     #print(h,w)
     #plt.figure(1)

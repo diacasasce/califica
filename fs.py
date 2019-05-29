@@ -1,16 +1,32 @@
 import os
 #check folder
-def checkFolder(folder,create=True):
-    exist=os.path.isdir(folder)
-    if(not exist):
-        if create:
-        #print(folder)
-            os.mkdir(folder)
-            return(folder)
-        else:
-            return exist
-    else:
-        return (folder)
+def tree(folder):
+    FL=folder.split('/')
+    fl=[]
+    for i in range(0,len(FL)):
+        if FL[i]!='':
+            fl.append(FL[i])
+    FL=fl
+    if FL[0]=='.':
+        FL=FL[1:len(FL)+1]
+        FL[0]='./'+FL[0]
+    res=[]
+    for i in range(1,len(FL)+1):
+        res.append('/'.join(FL[0:i]))
+    return res
+
+    
+def checkFolder(carpeta,create=True):
+    paths=tree(carpeta)
+    while len(paths)>0:
+        folder=paths[0]
+        exist=os.path.isdir(folder)
+        if(not exist):
+            if create:
+                os.mkdir(folder)
+        paths=paths[1:len(paths)+1]
+    return (carpeta)
+        
 def listFolder(folder,ext=''):
     if folder[-1]!='/':
         folder+='/'
