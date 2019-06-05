@@ -649,7 +649,7 @@ def Califica(file,th,baseDir):
         #show('fili',imFilter,0.15)
         #input('ready??')
         #input(newName)
-        print(Idprueba,Id,response)
+        #print(Idprueba,Id,response)
         #show('filtro',imres)
         #input('ready')
         print(cv.imwrite(newName,save))
